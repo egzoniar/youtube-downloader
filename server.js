@@ -41,10 +41,14 @@ app.get('/download', (req, res) => {
       // Download video from youtube
       const download = ytdl(BASE_URL + videoId).pipe(fs.createWriteStream(DIR + title + '.mp4'));
 
-      download.on('finish', () => {
+      download.on('pipe', () => {
+        console.log("Server download started for video named: " + title)
         // This line opens the file as a readable stream
         const readStream = fs.createReadStream(DIR + title + '.mp4');
 
+        readStream.on('pipe', () => {
+          console.log("Client download started for video named: " + title)
+        })
         // This will wait until we know the readable stream is actually valid before piping
         readStream.on('open', function () {
           // This just pipes the read stream to the response object (which goes to the client)
