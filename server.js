@@ -7,24 +7,16 @@ const app = express()
 const DIR = __dirname + "/videos/"
 const BASE_URL = "https://www.youtube.com/watch?v="
 
-// const readStream = fs.createReadStream(__dirname + '/video.mp4', 'base64')
-
-// readStream.on('data', chunk => {
-//   console.log('new chunk recieved')
-//   console.log(chunk)
-// })
-
-
-
-// app.get('/', (req, res) => {
-//   ytdl.getInfo(req.query.videoId, (err, info) => {
-//     if (err) throw err;
-//     const { player_response: { videoDetails } } = info
-//     console.log(info.formats[0].contentLength)
-//   });
-// })
-
-
+app.get('/', (req, res) => {
+  const html = `
+    <h3>Welcome to wetube (Youtube Downloader)</h3>
+    <p>
+      Request to <b>/download?videoId=[youtube-videoId-here]</b> </br>
+      And your video should start downloading.
+    </p>
+  `
+  res.status(200).send(html)
+})
 
 app.get('/download', (req, res) => {
   const { videoId } = req.query
@@ -39,51 +31,28 @@ app.get('/download', (req, res) => {
       const { title } = info
 
       // Download video from youtube
-      const download = ytdl(BASE_URL + videoId).pipe(fs.createWriteStream(DIR + title + '.mp4'));
+      const filename = title + '.mp4'
 
-      download.on('pipe', () => {
-        console.log("Server download started for video named: " + title)
-        // This line opens the file as a readable stream
-        const readStream = fs.createReadStream(DIR + title + '.mp4');
+      res.set("Content-Disposition", contentDisposition(filename))
 
-        readStream.on('pipe', () => {
-          console.log("Client download started for video named: " + title)
-        })
-        // This will wait until we know the readable stream is actually valid before piping
-        readStream.on('open', function () {
-          // This just pipes the read stream to the response object (which goes to the client)
-          // res.set("Content-Disposition", "attachment;filename=" + title + '.mp4')
-          res.set("Content-Disposition", contentDisposition(title + '.mp4'))
-          readStream.pipe(res);
-        });
+      const download = ytdl(BASE_URL + videoId).pipe(res)
 
-        // This catches any errors that happen while creating the readable stream (usually invalid names)
-        readStream.on('error', function (err) {
-          res.end(err);
-        });
-      })
+      download.on('open', function () {
+        console.log("Server is open for piping")
+      });
 
+      download.on('finish', () => res.end())
+
+      download.on('error', function (err) {
+        console.log(err)
+        res.end(err);
+      });
     });
   }
   catch (err) {
     res.status(404).send(err)
   }
 })
-
-
-// const url = 'https://www.youtube.com/watch?v=20-hBBasCGE' // quran
-// const url = 'https://www.youtube.com/watch?v=2uMc3rNnTo4' // 1hr video
-//const url = 'https://www.youtube.com/watch?v=EDul4jJQA2I' // spiderman
-// const url = 'https://www.youtube.com/watch?v=NUKKzdVy0EI' // 4hr
-// const videoID = 'EDul4jJQA2I'
-// ytdl(url).pipe(fs.createWriteStream(filename));
-
-// ytdl.getInfo(videoID, (err, info) => {
-//   if (err) throw err;
-//   const { player_response: { videoDetails } } = info
-//   const { short_view_count_text } = info
-//   console.log(videoDetails)
-// });
 
 const PORT = process.env.PORT || 5000
 
