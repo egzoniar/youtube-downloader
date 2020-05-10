@@ -13,10 +13,9 @@
   "dependencies": {
     "content-disposition": "^0.5.3",
     "express": "^4.17.1",
-    "youtube-dl": "^3.0.2"
+    "ytdl-core": "^2.1.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.3",
-    "ytdl-core": "^2.1.2"
+    "nodemon": "^2.0.3"
   }
 }
